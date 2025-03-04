@@ -8,7 +8,8 @@ import { blogPosts as staticBlogPosts } from '@/lib/blogData';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
-interface BlogPost {
+// Define a proper interface for the Supabase blog post
+interface SupabaseBlogPost {
   id: string;
   title: string;
   description?: string;
@@ -21,14 +22,29 @@ interface BlogPost {
   created_at: string;
   updated_at: string;
   user_id: string;
+}
+
+// Use this interface for the combined post object
+interface CombinedBlogPost {
+  id: string;
+  title: string;
+  description?: string;
+  content: string;
+  coverImage: string;
+  tags: string[];
+  published: boolean;
+  featured: boolean;
+  readingTime: string;
+  date: string;
   author: {
     name: string;
+    avatar?: string;
   };
 }
 
 const Index = () => {
   const [mounted, setMounted] = useState(false);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [blogPosts, setBlogPosts] = useState<CombinedBlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('全部');
   const categories = ['全部', '设计', '技术', '职场'];
@@ -49,10 +65,18 @@ const Index = () => {
         if (error) throw error;
         
         // 将数据转换为需要的格式
-        const formattedPosts: BlogPost[] = (data || []).map(post => ({
-          ...post,
+        const formattedPosts: CombinedBlogPost[] = (data || []).map((post: SupabaseBlogPost) => ({
+          id: post.id,
+          title: post.title,
+          description: post.description || '',
+          content: post.content || '',
+          coverImage: post.cover_image || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+          tags: post.tags || [],
+          published: true,
+          featured: post.featured || false,
+          readingTime: post.reading_time || '5 分钟',
+          date: new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }),
           author: { name: '博客作者' }, // 默认作者名，将来可以改进
-          tags: post.tags || []
         }));
         
         // 合并静态博客文章和Supabase文章
@@ -63,14 +87,12 @@ const Index = () => {
             title: post.title,
             description: post.description,
             content: post.content || '',
-            cover_image: post.coverImage,
+            coverImage: post.coverImage,
             tags: post.tags,
             published: true,
             featured: post.featured || false,
-            reading_time: post.readingTime,
-            created_at: post.date,
-            updated_at: post.date,
-            user_id: '0',
+            readingTime: post.readingTime,
+            date: post.date,
             author: post.author
           })),
           ...formattedPosts
@@ -90,14 +112,12 @@ const Index = () => {
           title: post.title,
           description: post.description,
           content: post.content || '',
-          cover_image: post.coverImage,
+          coverImage: post.coverImage,
           tags: post.tags,
           published: true,
           featured: post.featured || false,
-          reading_time: post.readingTime,
-          created_at: post.date,
-          updated_at: post.date,
-          user_id: '0',
+          readingTime: post.readingTime,
+          date: post.date,
           author: post.author
         }));
         setBlogPosts(staticPosts);
@@ -149,7 +169,7 @@ const Index = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
                 <div className="h-10 flex space-x-2 mt-4 md:mt-0 overflow-x-auto pb-2">
-                  {categories.map((category, index) => (
+                  {categories.map((category) => (
                     <button 
                       key={category}
                       onClick={() => setActiveCategory(category)}

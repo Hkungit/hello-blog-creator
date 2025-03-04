@@ -1,8 +1,8 @@
 
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { BlogPost } from '@/lib/blogData';
 import { Calendar, Clock, User } from 'lucide-react';
+import { BlogPost } from '@/components/BlogPost';
 
 interface FeaturedPostProps {
   post: BlogPost;
@@ -21,6 +21,10 @@ const FeaturedPost = ({ post }: FeaturedPostProps) => {
           src={post.coverImage} 
           alt={post.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80";
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/20" />
       </div>

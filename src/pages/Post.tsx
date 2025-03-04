@@ -120,9 +120,11 @@ const Post = () => {
         >
           {isAuthor && (
             <div className="flex justify-end mb-4">
-              <Button variant="outline" size="sm" as={Link} to={`/edit-post/${post.id}`}>
-                <Edit className="mr-2 h-4 w-4" />
-                编辑文章
+              <Button variant="outline" size="sm" className="flex items-center" asChild>
+                <Link to={`/edit-post/${post.id}`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  编辑文章
+                </Link>
               </Button>
             </div>
           )}
