@@ -1,141 +1,75 @@
 
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { blogPosts } from '@/lib/blogData';
-import { motion } from 'framer-motion';
-import { Calendar, Clock, ArrowLeft, ArrowRight, User } from 'lucide-react';
 import { marked } from 'marked';
+import { motion } from 'framer-motion';
 
 const Post = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [content, setContent] = useState('');
-  
   const post = blogPosts.find(post => post.id === id);
-  const postIndex = blogPosts.findIndex(post => post.id === id);
-  const nextPost = postIndex < blogPosts.length - 1 ? blogPosts[postIndex + 1] : null;
-  const prevPost = postIndex > 0 ? blogPosts[postIndex - 1] : null;
-  
+
   useEffect(() => {
-    if (!post) {
-      navigate('/');
-      return;
-    }
-    
-    // Parse markdown content
-    setContent(marked.parse(post.content));
-  }, [post, navigate]);
-  
+    const fetchContent = async () => {
+      if (post && post.contentUrl) {
+        try {
+          const response = await fetch(post.contentUrl);
+          const text = await response.text();
+          setContent(text); // 这里先等待 Promise 解析后再设置状态
+        } catch (error) {
+          console.error('Failed to fetch content:', error);
+          setContent('内容加载失败');
+        }
+      }
+    };
+
+    fetchContent();
+  }, [post]);
+
   if (!post) {
-    return null;
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center h-[50vh]">
+          <h1 className="text-2xl font-semibold">文章未找到</h1>
+          <p>抱歉，您请求的文章不存在。</p>
+        </div>
+      </Layout>
+    );
   }
 
   return (
-    <Layout className="py-16 md:py-24">
-      <article className="max-w-4xl mx-auto">
-        <div className="mb-8 md:mb-12">
-          <motion.div 
-            className="flex space-x-3 mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {post.tags.map((tag) => (
-              <span 
-                key={tag} 
-                className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-xs font-medium"
-              >
-                {tag}
-              </span>
-            ))}
-          </motion.div>
-          
-          <motion.h1 
-            className="text-3xl md:text-4xl lg:text-5xl font-display font-medium mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            {post.title}
-          </motion.h1>
-          
-          <motion.div 
-            className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <div className="flex items-center gap-2">
-              <img 
-                src={post.author.avatar} 
-                alt={post.author.name}
-                className="h-8 w-8 rounded-full object-cover"
-              />
-              <span>{post.author.name}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Calendar size={16} />
-              <span>{post.date}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Clock size={16} />
-              <span>{post.readingTime}</span>
-            </div>
-          </motion.div>
-        </div>
-        
-        <motion.div 
-          className="mb-10 overflow-hidden rounded-xl"
+    <Layout className="max-w-4xl mx-auto">
+      <article className="prose prose-lg lg:prose-xl dark:prose-invert mx-auto">
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
         >
-          <img 
-            src={post.coverImage} 
-            alt={post.title}
-            className="w-full h-auto object-cover"
-          />
+          <h1 className="font-display text-3xl md:text-4xl lg:text-5xl mb-4">{post.title}</h1>
+          <div className="flex items-center text-sm text-muted-foreground mb-6">
+            <span>{new Date(post.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            <span className="mx-2">·</span>
+            <span>{post.readingTime} 分钟阅读</span>
+          </div>
+          {post.coverImage && (
+            <img 
+              src={post.coverImage} 
+              alt={post.title} 
+              className="w-full h-auto rounded-lg object-cover mb-8"
+            />
+          )}
         </motion.div>
         
-        <motion.div 
-          className="prose prose-lg lg:prose-xl max-w-none blog-content"
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          dangerouslySetInnerHTML={{ __html: content }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          dangerouslySetInnerHTML={{ __html: marked(content) }}
+          className="leading-relaxed"
         />
-        
-        <motion.div 
-          className="mt-16 pt-8 border-t border-border flex justify-between"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          {prevPost ? (
-            <a 
-              href={`/post/${prevPost.id}`}
-              className="flex items-center text-muted-foreground hover:text-foreground group"
-            >
-              <ArrowLeft size={16} className="mr-2 transition-transform group-hover:-translate-x-1" />
-              <span>上一篇</span>
-            </a>
-          ) : (
-            <div></div>
-          )}
-          
-          {nextPost ? (
-            <a 
-              href={`/post/${nextPost.id}`}
-              className="flex items-center text-muted-foreground hover:text-foreground group"
-            >
-              <span>下一篇</span>
-              <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-1" />
-            </a>
-          ) : (
-            <div></div>
-          )}
-        </motion.div>
       </article>
     </Layout>
   );

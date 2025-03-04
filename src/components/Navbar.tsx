@@ -1,12 +1,23 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +34,11 @@ const Navbar = () => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleLogin = () => {
+    navigate('/auth');
+    if (isMenuOpen) toggleMenu();
   };
 
   return (
@@ -44,6 +60,27 @@ const Navbar = () => {
           <nav className="hidden md:flex items-center space-x-8">
             <NavLink to="/">首页</NavLink>
             <NavLink to="/about">关于</NavLink>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="ml-4">
+                    <User className="h-4 w-4 mr-2" /> 
+                    {user.email?.split('@')[0]}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem className="cursor-pointer">个人资料</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">我的文章</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer text-red-500" onClick={signOut}>
+                    <LogOut className="h-4 w-4 mr-2" /> 退出登录
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button size="sm" onClick={handleLogin}>登录</Button>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -70,6 +107,23 @@ const Navbar = () => {
             <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
               <MobileNavLink to="/" onClick={toggleMenu}>首页</MobileNavLink>
               <MobileNavLink to="/about" onClick={toggleMenu}>关于</MobileNavLink>
+              
+              {user ? (
+                <>
+                  <div className="pt-2 border-t border-gray-100">
+                    <p className="text-sm text-muted-foreground mb-2">已登录为 {user.email}</p>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start text-red-500" 
+                      onClick={() => { signOut(); toggleMenu(); }}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" /> 退出登录
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <Button className="w-full mt-2" onClick={handleLogin}>登录</Button>
+              )}
             </div>
           </motion.div>
         )}
