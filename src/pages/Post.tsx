@@ -13,11 +13,9 @@ const Post = () => {
 
   useEffect(() => {
     const fetchContent = async () => {
-      if (post && post.contentUrl) {
+      if (post && post.content) {
         try {
-          const response = await fetch(post.contentUrl);
-          const text = await response.text();
-          setContent(text); // 这里先等待 Promise 解析后再设置状态
+          setContent(post.content);
         } catch (error) {
           console.error('Failed to fetch content:', error);
           setContent('内容加载失败');
