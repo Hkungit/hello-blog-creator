@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut, PenSquare, PenLine, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from '@/components/ui/navigation-menu';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -42,87 +43,116 @@ const Navbar = () => {
   };
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white/80 backdrop-blur-md shadow-sm' : 'bg-transparent'
-      }`}
-    >
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          <Link 
-            to="/" 
-            className="text-xl md:text-2xl font-display font-semibold tracking-tight"
-          >
-            博客空间
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <NavLink to="/">首页</NavLink>
-            <NavLink to="/about">关于</NavLink>
-            
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center">
+        <div className="mr-4 flex">
+          <NavLink to="/" className="flex items-center space-x-2">
+            <PenSquare className="h-6 w-6" />
+            <span className="font-display font-bold hidden sm:inline-block">博客空间</span>
+          </NavLink>
+        </div>
+        <NavigationMenu className="hidden md:flex">
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <NavLink to="/" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                  首页
+                </NavLink>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <NavLink to="/about" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                  关于
+                </NavLink>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            {user && (
+              <>
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild>
+                    <NavLink to="/create-post" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                      写文章
+                    </NavLink>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild>
+                    <NavLink to="/my-posts" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                      我的文章
+                    </NavLink>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              </>
+            )}
+          </NavigationMenuList>
+        </NavigationMenu>
+        <div className="flex flex-1 items-center justify-end space-x-2">
+          <nav className="flex items-center">
+            <ThemeToggle />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="ml-4">
-                    <User className="h-4 w-4 mr-2" /> 
-                    {user.email?.split('@')[0]}
-                  </Button>
+                  <button className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-muted/50 hover:bg-muted ml-2">
+                    <span className="font-semibold text-sm">{user.email?.substring(0, 2).toUpperCase()}</span>
+                  </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="cursor-pointer">个人资料</DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">我的文章</DropdownMenuItem>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer text-red-500" onClick={signOut}>
-                    <LogOut className="h-4 w-4 mr-2" /> 退出登录
+                  <DropdownMenuItem asChild>
+                    <NavLink to="/my-posts">
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span>我的文章</span>
+                    </NavLink>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <NavLink to="/create-post">
+                      <PenLine className="mr-2 h-4 w-4" />
+                      <span>写文章</span>
+                    </NavLink>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>退出登录</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button size="sm" onClick={handleLogin}>登录</Button>
+              <Button variant="outline" size="sm" asChild className="ml-2">
+                <NavLink to="/auth">登录</NavLink>
+              </Button>
             )}
           </nav>
-
-          {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden p-2 focus:outline-none"
-            onClick={toggleMenu}
-            aria-label={isMenuOpen ? "关闭导航菜单" : "打开导航菜单"}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
         </div>
       </div>
-
-      {/* Mobile Navigation */}
+      
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="md:hidden bg-white/95 backdrop-blur-md"
+            className="md:hidden border-t"
           >
-            <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-              <MobileNavLink to="/" onClick={toggleMenu}>首页</MobileNavLink>
-              <MobileNavLink to="/about" onClick={toggleMenu}>关于</MobileNavLink>
-              
-              {user ? (
+            <div className="container py-4 flex flex-col space-y-4">
+              <NavLink to="/" className="py-2" onClick={toggleMenu}>首页</NavLink>
+              <NavLink to="/about" className="py-2" onClick={toggleMenu}>关于</NavLink>
+              {user && (
                 <>
-                  <div className="pt-2 border-t border-gray-100">
-                    <p className="text-sm text-muted-foreground mb-2">已登录为 {user.email}</p>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start text-red-500" 
-                      onClick={() => { signOut(); toggleMenu(); }}
-                    >
-                      <LogOut className="h-4 w-4 mr-2" /> 退出登录
-                    </Button>
-                  </div>
+                  <NavLink to="/create-post" className="py-2" onClick={toggleMenu}>写文章</NavLink>
+                  <NavLink to="/my-posts" className="py-2" onClick={toggleMenu}>我的文章</NavLink>
                 </>
-              ) : (
-                <Button className="w-full mt-2" onClick={handleLogin}>登录</Button>
+              )}
+              {!user && (
+                <Button asChild className="w-full">
+                  <NavLink to="/auth" onClick={toggleMenu}>登录 / 注册</NavLink>
+                </Button>
               )}
             </div>
           </motion.div>
@@ -141,22 +171,6 @@ const NavLink = ({ to, children }: NavLinkProps) => (
   <Link 
     to={to} 
     className="text-foreground/80 hover:text-foreground transition-colors duration-200 text-sm font-medium"
-  >
-    {children}
-  </Link>
-);
-
-interface MobileNavLinkProps {
-  to: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}
-
-const MobileNavLink = ({ to, onClick, children }: MobileNavLinkProps) => (
-  <Link 
-    to={to} 
-    className="text-foreground/80 hover:text-foreground py-2 text-lg font-medium"
-    onClick={onClick}
   >
     {children}
   </Link>

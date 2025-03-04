@@ -10,6 +10,9 @@ import Post from "./pages/Post";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import CreatePost from "./pages/CreatePost";
+import EditPost from "./pages/EditPost";
+import MyPosts from "./pages/MyPosts";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +28,9 @@ const App = () => (
             <Route path="/post/:id" element={<Post />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/create-post" element={<CreatePost />} />
+            <Route path="/edit-post/:id" element={<EditPost />} />
+            <Route path="/my-posts" element={<MyPosts />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
