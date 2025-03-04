@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -46,41 +48,41 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <div className="mr-4 flex">
-          <NavLink to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <PenSquare className="h-6 w-6" />
             <span className="font-display font-bold hidden sm:inline-block">博客空间</span>
-          </NavLink>
+          </Link>
         </div>
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <NavLink to="/" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                <Link to="/" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                   首页
-                </NavLink>
+                </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <NavLink to="/about" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                <Link to="/about" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                   关于
-                </NavLink>
+                </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
             {user && (
               <>
                 <NavigationMenuItem>
                   <NavigationMenuLink asChild>
-                    <NavLink to="/create-post" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                    <Link to="/create-post" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                       写文章
-                    </NavLink>
+                    </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuLink asChild>
-                    <NavLink to="/my-posts" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                    <Link to="/my-posts" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                       我的文章
-                    </NavLink>
+                    </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               </>
@@ -105,16 +107,16 @@ const Navbar = () => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <NavLink to="/my-posts">
+                    <Link to="/my-posts">
                       <FileText className="mr-2 h-4 w-4" />
                       <span>我的文章</span>
-                    </NavLink>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <NavLink to="/create-post">
+                    <Link to="/create-post">
                       <PenLine className="mr-2 h-4 w-4" />
                       <span>写文章</span>
-                    </NavLink>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={signOut}>
@@ -125,7 +127,7 @@ const Navbar = () => {
               </DropdownMenu>
             ) : (
               <Button variant="outline" size="sm" asChild className="ml-2">
-                <NavLink to="/auth">登录</NavLink>
+                <Link to="/auth">登录</Link>
               </Button>
             )}
           </nav>
@@ -141,17 +143,17 @@ const Navbar = () => {
             className="md:hidden border-t"
           >
             <div className="container py-4 flex flex-col space-y-4">
-              <NavLink to="/" className="py-2" onClick={toggleMenu}>首页</NavLink>
-              <NavLink to="/about" className="py-2" onClick={toggleMenu}>关于</NavLink>
+              <Link to="/" className="py-2" onClick={toggleMenu}>首页</Link>
+              <Link to="/about" className="py-2" onClick={toggleMenu}>关于</Link>
               {user && (
                 <>
-                  <NavLink to="/create-post" className="py-2" onClick={toggleMenu}>写文章</NavLink>
-                  <NavLink to="/my-posts" className="py-2" onClick={toggleMenu}>我的文章</NavLink>
+                  <Link to="/create-post" className="py-2" onClick={toggleMenu}>写文章</Link>
+                  <Link to="/my-posts" className="py-2" onClick={toggleMenu}>我的文章</Link>
                 </>
               )}
               {!user && (
                 <Button asChild className="w-full">
-                  <NavLink to="/auth" onClick={toggleMenu}>登录 / 注册</NavLink>
+                  <Link to="/auth" onClick={toggleMenu}>登录 / 注册</Link>
                 </Button>
               )}
             </div>
@@ -161,19 +163,5 @@ const Navbar = () => {
     </header>
   );
 };
-
-interface NavLinkProps {
-  to: string;
-  children: React.ReactNode;
-}
-
-const NavLink = ({ to, children }: NavLinkProps) => (
-  <Link 
-    to={to} 
-    className="text-foreground/80 hover:text-foreground transition-colors duration-200 text-sm font-medium"
-  >
-    {children}
-  </Link>
-);
 
 export default Navbar;

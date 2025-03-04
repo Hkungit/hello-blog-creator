@@ -151,14 +151,13 @@ const PostEditor: React.FC<PostEditorProps> = ({
           />
         </div>
         
-        <div>
+        <div className="flex items-center">
+          <ImageIcon className="h-4 w-4 text-muted-foreground mr-2" />
           <Input
             value={coverImage}
             onChange={(e) => setCoverImage(e.target.value)}
             placeholder="封面图片 URL"
-            className="flex items-center"
             type="url"
-            prefix={<ImageIcon className="h-4 w-4 text-muted-foreground mr-2" />}
           />
         </div>
         
@@ -183,14 +182,15 @@ const PostEditor: React.FC<PostEditorProps> = ({
         
         <div className="flex flex-col space-y-2">
           <div className="flex items-center space-x-2">
-            <Input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              placeholder="添加标签"
-              className="flex-1"
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleTagAdd())}
-              prefix={<TagIcon className="h-4 w-4 text-muted-foreground mr-2" />}
-            />
+            <div className="flex items-center flex-1">
+              <TagIcon className="h-4 w-4 text-muted-foreground mr-2" />
+              <Input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                placeholder="添加标签"
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleTagAdd())}
+              />
+            </div>
             <Button 
               type="button" 
               onClick={handleTagAdd}
