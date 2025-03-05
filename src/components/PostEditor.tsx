@@ -1,13 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckIcon, Image as ImageIcon, Loader2, Tag as TagIcon } from 'lucide-react';
+import { CheckIcon, Image as ImageIcon, Loader2, Tag as TagIcon, Upload, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 interface PostEditorProps {
   initialData?: {
@@ -44,7 +44,9 @@ const PostEditor: React.FC<PostEditorProps> = ({
   const [published, setPublished] = useState(initialData.published || false);
   const [featured, setFeatured] = useState(initialData.featured || false);
   const [loading, setLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -57,6 +59,81 @@ const PostEditor: React.FC<PostEditorProps> = ({
 
   const handleTagRemove = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setImageUploading(true);
+      
+      // Check file type and size
+      if (!file.type.match('image.*')) {
+        toast({
+          title: "不支持的文件类型",
+          description: "请上传图片文件（JPEG, PNG, GIF等）",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "文件过大",
+          description: "图片大小不能超过5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create form data for the API request
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload image via edge function
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '上传失败');
+      }
+
+      const data = await response.json();
+      setCoverImage(data.url);
+      
+      toast({
+        title: "上传成功",
+        description: "封面图片已上传",
+      });
+    } catch (error) {
+      console.error('图片上传错误:', error);
+      toast({
+        title: "上传失败",
+        description: error instanceof Error ? error.message : "上传过程中发生错误",
+        variant: "destructive",
+      });
+    } finally {
+      setImageUploading(false);
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setCoverImage('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -151,14 +228,71 @@ const PostEditor: React.FC<PostEditorProps> = ({
           />
         </div>
         
-        <div className="flex items-center">
-          <ImageIcon className="h-4 w-4 text-muted-foreground mr-2" />
-          <Input
-            value={coverImage}
-            onChange={(e) => setCoverImage(e.target.value)}
-            placeholder="封面图片 URL"
-            type="url"
-          />
+        <div className="space-y-2">
+          <div className="flex flex-col space-y-2">
+            <label className="flex items-center text-sm text-muted-foreground">
+              <ImageIcon className="h-4 w-4 mr-2" />
+              封面图片
+            </label>
+            
+            {coverImage ? (
+              <div className="relative">
+                <img 
+                  src={coverImage} 
+                  alt="封面图片预览" 
+                  className="w-full h-64 object-cover rounded-md"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1266&q=80";
+                  }}
+                />
+                <Button 
+                  type="button" 
+                  size="icon" 
+                  variant="destructive"
+                  className="absolute top-2 right-2 h-8 w-8"
+                  onClick={handleRemoveImage}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div 
+                className="border-2 border-dashed border-muted-foreground/20 rounded-md p-6 flex flex-col items-center justify-center cursor-pointer hover:border-muted-foreground/40 transition-colors"
+                onClick={handleImageClick}
+              >
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleImageUpload}
+                />
+                {imageUploading ? (
+                  <div className="flex flex-col items-center space-y-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">上传中...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center space-y-2">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">点击上传封面图片</p>
+                    <p className="text-xs text-muted-foreground">支持 JPG, PNG, GIF (最大 5MB)</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <div className="flex items-center mt-1">
+              <Input
+                value={coverImage}
+                onChange={(e) => setCoverImage(e.target.value)}
+                placeholder="或输入图片 URL"
+                type="url"
+                disabled={imageUploading}
+              />
+            </div>
+          </div>
         </div>
         
         <div>
@@ -258,7 +392,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
         </Button>
         <Button 
           type="submit" 
-          disabled={loading}
+          disabled={loading || imageUploading}
         >
           {loading ? (
             <>

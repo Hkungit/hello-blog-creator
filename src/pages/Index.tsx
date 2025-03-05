@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -18,16 +17,20 @@ interface DatabasePost {
   content: string;
   created_at: string;
   user_id: string;
-  image_url?: string;
+  cover_image?: string;
   description?: string;
-  author?: {
-    email: string;
-  };
   tags?: string[];
+  reading_time?: string;
+  published?: boolean;
+  featured?: boolean;
+  updated_at?: string;
 }
 
 // Combined type that includes all required BlogPost fields
-type CombinedBlogPost = DatabasePost & {
+type CombinedBlogPost = {
+  id: string;
+  title: string;
+  content: string;
   date: string;
   readingTime: string;
   coverImage: string;
@@ -41,8 +44,9 @@ type CombinedBlogPost = DatabasePost & {
 
 const fetchPosts = async (): Promise<CombinedBlogPost[]> => {
   const { data, error } = await supabase
-    .from('posts')
-    .select('*, author:user_id(email)')
+    .from('blog_posts')
+    .select('*')
+    .eq('published', true)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -52,28 +56,23 @@ const fetchPosts = async (): Promise<CombinedBlogPost[]> => {
 
   // Transform database posts to match the BlogPost interface
   return data.map((post: DatabasePost) => {
-    const authorName = post.author?.email?.split('@')[0] || 'Unknown Author';
-    
-    // Ensure tags is always an array
-    const tags = post.tags || ['General'];
-    
     // Convert created_at to a formatted date
     const createdAt = new Date(post.created_at);
     const formattedDate = `${createdAt.getFullYear()}年${createdAt.getMonth() + 1}月${createdAt.getDate()}日`;
     
-    // Calculate reading time (rough estimate)
-    const wordsPerMinute = 200;
-    const wordCount = post.content?.split(/\s+/).length || 0;
-    const readingTime = Math.max(1, Math.ceil(wordCount / wordsPerMinute)) + '分钟';
-
+    // Ensure tags is always an array
+    const tags = post.tags || ['General'];
+    
     return {
-      ...post,
+      id: post.id,
+      title: post.title,
+      content: post.content,
       date: formattedDate,
-      readingTime: readingTime,
-      coverImage: post.image_url || 'https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1266&q=80',
+      readingTime: post.reading_time || '5分钟',
+      coverImage: post.cover_image || 'https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1266&q=80',
       author: {
-        name: authorName,
-        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${authorName}`,
+        name: '作者',
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=Author`,
       },
       tags: tags,
       description: post.description || post.content.substring(0, 150) + '...',
