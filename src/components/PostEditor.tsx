@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,7 +73,6 @@ const PostEditor: React.FC<PostEditorProps> = ({
     try {
       setImageUploading(true);
       
-      // Check file type and size
       if (!file.type.match('image.*')) {
         toast({
           title: "不支持的文件类型",
@@ -84,7 +82,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "文件过大",
           description: "图片大小不能超过5MB",
@@ -93,11 +91,9 @@ const PostEditor: React.FC<PostEditorProps> = ({
         return;
       }
 
-      // Create form data for the API request
       const formData = new FormData();
       formData.append('file', file);
 
-      // Upload image via edge function
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-image`, {
         method: 'POST',
         headers: {
@@ -127,7 +123,6 @@ const PostEditor: React.FC<PostEditorProps> = ({
       });
     } finally {
       setImageUploading(false);
-      // Reset the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -166,7 +161,6 @@ const PostEditor: React.FC<PostEditorProps> = ({
     setLoading(true);
 
     try {
-      // Get current editor content
       const currentContent = editorRef.current ? editorRef.current.getContent() : content;
 
       const postData = {
@@ -184,7 +178,6 @@ const PostEditor: React.FC<PostEditorProps> = ({
       let response;
 
       if (isEditing && initialData.id) {
-        // 更新现有文章
         response = await supabase
           .from('blog_posts')
           .update(postData)
@@ -193,7 +186,6 @@ const PostEditor: React.FC<PostEditorProps> = ({
           .select()
           .single();
       } else {
-        // 创建新文章
         response = await supabase
           .from('blog_posts')
           .insert([postData])
@@ -210,7 +202,6 @@ const PostEditor: React.FC<PostEditorProps> = ({
         description: published ? "您的文章已发布并可见" : "您的文章已保存为草稿",
       });
 
-      // 导航到新创建/编辑的文章
       navigate(`/post/${response.data.id}`);
     } catch (error) {
       console.error('Error saving post:', error);
@@ -316,7 +307,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
         <div>
           <div className="border rounded-md">
             <Editor
-              tinymceScriptSrc={`https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js`}
+              tinymceScriptSrc={`https://cdn.tiny.cloud/1/ppjchppmbhcwrvendb3x19cn00quv3n5ilc8kai7fpq2yq49/tinymce/6/tinymce.min.js`}
               onInit={(evt, editor) => editorRef.current = editor}
               initialValue={content}
               onEditorChange={handleEditorChange}
