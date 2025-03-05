@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
 import { Editor } from '@tinymce/tinymce-react';
+import { useTheme } from 'next-themes';
 
 interface PostEditorProps {
   initialData?: {
@@ -50,6 +51,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
   const editorRef = useRef<any>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const handleTagAdd = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -215,6 +217,23 @@ const PostEditor: React.FC<PostEditorProps> = ({
     }
   };
 
+  const [editorTheme, setEditorTheme] = useState('oxide');
+  
+  useEffect(() => {
+    setEditorTheme(theme === 'dark' ? 'oxide-dark' : 'oxide');
+    
+    if (editorRef.current) {
+      const currentEditor = editorRef.current;
+      if (currentEditor && currentEditor.editorManager) {
+        const settings = currentEditor.editorManager.activeEditor.settings;
+        settings.skin = theme === 'dark' ? 'oxide-dark' : 'oxide';
+        settings.content_css = theme === 'dark' ? 'dark' : 'default';
+        
+        currentEditor.editorManager.activeEditor.render();
+      }
+    }
+  }, [theme]);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
@@ -307,7 +326,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
         <div>
           <div className="border rounded-md">
             <Editor
-              tinymceScriptSrc={`https://cdn.tiny.cloud/1/ppjchppmbhcwrvendb3x19cn00quv3n5ilc8kai7fpq2yq49/tinymce/6/tinymce.min.js`}
+              tinymceScriptSrc="/tinymce/tinymce.min.js"
               onInit={(evt, editor) => editorRef.current = editor}
               initialValue={content}
               onEditorChange={handleEditorChange}
@@ -325,7 +344,9 @@ const PostEditor: React.FC<PostEditorProps> = ({
                   'removeformat | link image media | help',
                 content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                 language: 'zh_CN',
-                language_url: 'https://cdn.jsdelivr.net/npm/tinymce-lang@1.0.1/langs/zh_CN.js',
+                language_url: '/tinymce/langs/zh_CN.js',
+                skin: editorTheme,
+                content_css: theme === 'dark' ? 'dark' : 'default',
                 branding: false,
                 promotion: false,
                 placeholder: '使用富文本编辑器编写您的文章内容...',
