@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import CreatePost from "./pages/CreatePost";
 import EditPost from "./pages/EditPost";
 import MyPosts from "./pages/MyPosts";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/post/:id" element={<Post />} />
               <Route path="/about" element={<About />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/create-post" element={<CreatePost />} />
               <Route path="/edit-post/:id" element={<EditPost />} />
               <Route path="/my-posts" element={<MyPosts />} />
