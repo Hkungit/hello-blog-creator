@@ -61,7 +61,8 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         url: publicUrl,
-        message: '图片上传成功' 
+        message: '图片上传成功',
+        location: publicUrl // TinyMCE expects the 'location' property for image uploads
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )

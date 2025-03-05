@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
+import { Editor } from '@tinymce/tinymce-react';
 
 interface PostEditorProps {
   initialData?: {
@@ -47,6 +48,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
   const [imageUploading, setImageUploading] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<any>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -136,6 +138,10 @@ const PostEditor: React.FC<PostEditorProps> = ({
     setCoverImage('');
   };
 
+  const handleEditorChange = (content: string) => {
+    setContent(content);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -160,9 +166,12 @@ const PostEditor: React.FC<PostEditorProps> = ({
     setLoading(true);
 
     try {
+      // Get current editor content
+      const currentContent = editorRef.current ? editorRef.current.getContent() : content;
+
       const postData = {
         title,
-        content,
+        content: currentContent,
         description: description || title.substring(0, 100) + '...',
         cover_image: coverImage,
         tags,
@@ -305,13 +314,33 @@ const PostEditor: React.FC<PostEditorProps> = ({
         </div>
         
         <div>
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="使用 Markdown 格式编写您的文章内容..."
-            className="min-h-[400px] font-mono"
-            required
-          />
+          <div className="border rounded-md">
+            <Editor
+              tinymceScriptSrc={`https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js`}
+              onInit={(evt, editor) => editorRef.current = editor}
+              initialValue={content}
+              onEditorChange={handleEditorChange}
+              init={{
+                height: 500,
+                menubar: true,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 
+                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                  'insertdatetime', 'media', 'table', 'preview', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                  'bold italic forecolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | link image media | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                language: 'zh_CN',
+                language_url: 'https://cdn.jsdelivr.net/npm/tinymce-lang@1.0.1/langs/zh_CN.js',
+                branding: false,
+                promotion: false,
+                placeholder: '使用富文本编辑器编写您的文章内容...',
+              }}
+            />
+          </div>
         </div>
         
         <div className="flex flex-col space-y-2">
